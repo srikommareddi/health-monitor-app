@@ -1,0 +1,38 @@
+# Resolve react_native_pods.rb with node to allow for hoisting
+# Resolve react_native_pods.rb with node to allow for hoisting
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+#require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '17.0'
+prepare_react_native_project!
+
+# Disable New Architecture (optional; keep if you want less complexity)
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+
+target 'HealthMonitorApp' do
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :new_arch_enabled => false,
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  # Ensure LiveKit WebRTC podspec is resolved locally.
+  pod 'livekit-react-native-webrtc', :path => '../node_modules/@livekit/react-native-webrtc'
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false
+    )
+
+    # Ensure all pods use a compatible deployment target for Hermes runtime pods
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |cfg|
+        cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '17.0'
+      end
+    end
+  end
+end
