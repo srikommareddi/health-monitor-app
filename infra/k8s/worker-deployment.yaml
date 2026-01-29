@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thrive-ai-worker
+  namespace: thrive-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thrive-ai-worker
+  template:
+    metadata:
+      labels:
+        app: thrive-ai-worker
+    spec:
+      containers:
+        - name: worker
+          image: thrive-ai-api:latest
+          command: ["python", "-m", "app.worker"]
+          envFrom:
+            - configMapRef:
+                name: thrive-ai-config
+            - secretRef:
+                name: thrive-ai-secrets

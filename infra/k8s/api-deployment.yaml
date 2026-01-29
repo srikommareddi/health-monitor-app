@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thrive-ai-api
+  namespace: thrive-ai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: thrive-ai-api
+  template:
+    metadata:
+      labels:
+        app: thrive-ai-api
+    spec:
+      containers:
+        - name: api
+          image: thrive-ai-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: thrive-ai-config
+            - secretRef:
+                name: thrive-ai-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thrive-ai-api
+  namespace: thrive-ai
+spec:
+  selector:
+    app: thrive-ai-api
+  ports:
+    - port: 80
+      targetPort: 8000
